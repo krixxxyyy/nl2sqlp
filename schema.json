@@ -1,0 +1,16 @@
+{
+  "employees": {
+    "columns": {
+      "id": "int",
+      "name": "text",
+      "salary": "numeric",
+      "department_id": "int"
+    }
+  },
+  "departments": {
+    "columns": {
+      "id": "int",
+      "name": "text"
+    }
+  }
+}
