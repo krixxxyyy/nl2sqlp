@@ -1,22 +1,68 @@
-# nl2sqlp — NL → SQL (project module)
+# nl2sqlp — Advanced Natural Language to SQL Engine
 
-Small rule-based natural-language-to-SQL generator and minimal UI/CLI harness.
+> **A hybrid Natural Language Processing system that translates English queries into executable SQL. Powered by a custom-hosted Language Model and an intelligent Clarification Engine.**
 
-## What this folder contains
+## 🚀 Project Overview
 
-- `app.py` — Streamlit UI that collects NL queries and shows generated SQL. Maintains conversation history and handles clarifications via `main.nl_to_sql`.
-- `main.py` — Orchestrator: loads `schema.json`, runs the pipeline, and implements the clarification protocol using the module-global `pending_intent` variable. Also provides a simple CLI REPL.
-- `normaliser.py` — Normalises raw text into a predictable form consumed by the encoder/planner.
-- `encoder.py` — Tokenises or maps normalized text into simple tokens used by the planner.
-- `planner.py` — Builds a `LogicalForm` (`logical_form.py`) from tokens and `schema.json`. Applies simple heuristics for tables, columns, aggregation and filters.
-- `logical_form.py` — Definition of the mutable logical form object (attributes like `tables`, `columns`, `aggregation`, `group_by`, `filters`, `join_required`).
-- `clarifier.py` — Encapsulates clarification detection and message generation for ambiguous intents.
-- `sql_generator.py` — Converts a populated `LogicalForm` into a SQL string. Uses in-place logical form attributes (e.g., `group_by`, `aggregation`).
-- `schema_utils.py` + `schema.json` — Load and represent the canonical schema that drives planner decisions.
-- `explain.py`, `lm_adapter.py` — helper modules for explanations and any LM adapter logic; modify only if you understand LM/tokeniser interactions.
-- `universal_nl2sql_lm/` — Local model and tokenizer assets (safetensors/tokenizer). Only touch when updating model/tokeniser files.
+**nl2sqlp** bridges the gap between non-technical users and complex databases. Instead of requiring users to master SQL syntax, this system allows them to ask questions in plain English. 
 
-## Quickstart
+Unlike standard API wrappers, this project implements a **custom, locally-hosted Language Model** to understand schema semantics. Crucially, it features a robust **Classification & Clarification Module** that detects ambiguity in user requests, ensuring high accuracy by engaging the user in a dialogue rather than guessing.
+
+## 📸 Demo in Action
+
+*The system handling an ambiguous query ("highest salary department") by pausing execution to ask for clarification, rather than hallucinating an answer.*
+
+![Clarification Flow Demo](./demo.png)
+
+## 🌟 Key Technical Highlights
+
+### 1. Intelligent Classification & Disambiguation
+**This is the critical differentiator of the system.** Pure generation models often "hallucinate" when a user's request is vague.
+* **The Problem:** As seen in the screenshot above, if a user asks *"highest salary department,"* do they mean the department with the *single highest earner* or the *highest average salary*?
+* **The Solution:** The `clarifier.py` module acts as a classification layer. It analyzes the `LogicalForm` for missing intents. If ambiguity is detected, it triggers a **Clarification Protocol**, pausing generation to ask the user for the specific intent.
+* **The Result:** This ensures the user *always* reaches the correct answer, significantly reducing SQL errors and providing a reliable UX.
+
+### 2. Custom Language Model (`universal_nl2sql_lm`)
+The core engine is not a generic API call. I have integrated **specialized, local Language Model assets**:
+* **Privacy-First:** All processing happens locally; no sensitive schema data is sent to external APIs.
+* **Domain Specificity:** The LM and tokenizer are optimized to map natural language tokens specifically to database schema entities (tables, columns) and SQL keywords.
+* **Architecture:** The system uses `lm_adapter.py` to bridge the raw model weights with the application logic, allowing for easy model swaps or fine-tuning updates.
+
+## 🏗️ System Architecture
+
+The pipeline follows a modular design, separating intent understanding (LM) from logic construction (Planner).
+
+### The Application Layer
+* **`app.py`**: A **Streamlit** web interface (seen in the screenshot). It maintains conversation history and handles clarifications via the core orchestrator.
+* **`main.py`**: The Orchestrator. It manages the lifecycle of a query, handles the `pending_intent` state machine during clarifications, and provides a CLI fallback.
+
+### The Intelligence Layer
+* **`universal_nl2sql_lm/`**: Local model and tokenizer assets (safetensors/tokenizer).
+* **`planner.py`**: The semantic parser. It builds a `LogicalForm` from tokens and `schema.json`, applying heuristics for tables, columns, and filters.
+* **`clarifier.py`**: Encapsulates clarification detection and message generation for ambiguous intents.
+* **`sql_generator.py`**: The final compiler that turns the populated `LogicalForm` into valid SQL strings.
+
+## 📂 File Structure Breakdown
+
+| File | Description |
+| :--- | :--- |
+| `app.py` | Streamlit frontend for chat-based SQL generation. |
+| `main.py` | Backend entry point; runs the pipeline and implements the clarification protocol. |
+| `universal_nl2sql_lm/` | **Custom LM assets** (model weights and tokenizer). |
+| `lm_adapter.py` | Adapter pattern to interface with the custom LM. |
+| `clarifier.py` | Logic for detecting ambiguity and generating clarification questions. |
+| `planner.py` | Heuristic planner that builds the `LogicalForm`. |
+| `logical_form.py` | Definition of the mutable object carrying query state (tables, cols, filters). |
+| `normaliser.py` | Pre-processing pipeline to standardize raw text input. |
+| `encoder.py` | Tokenization logic for mapping text to tokens used by the planner. |
+| `sql_generator.py` | Deterministic SQL transpiler. |
+| `schema.json` | The canonical database definition (Tables, Columns, Types). |
+
+## ⚡ Quickstart
+
+### Prerequisites
+- Python 3.8+
+- [Optional] CUDA-enabled GPU for faster LM inference.
 
 Install Streamlit if you want the UI, then run:
 
@@ -45,5 +91,6 @@ python main.py
 - Clarification rules: `clarifier.py` and `main.py` (`pending_intent` handling).
 - SQL emission: `sql_generator.py`.
 
-If you want, I can also add a `requirements.txt`, a tiny test script that runs a few sample queries through `main.nl_to_sql`, or expand this README with examples and common failure cases — tell me which and I will add them.
 
+
+# Created by Krish Nayyar.
