@@ -27,7 +27,24 @@ The core engine is not a generic API call. I have integrated **specialized, loca
 * **Privacy-First:** All processing happens locally; no sensitive schema data is sent to external APIs.
 * **Domain Specificity:** The LM and tokenizer are optimized to map natural language tokens specifically to database schema entities (tables, columns) and SQL keywords.
 * **Architecture:** The system uses `lm_adapter.py` to bridge the raw model weights with the application logic, allowing for easy model swaps or fine-tuning updates.
+## 📊 Why nl2sqlp is Better Than Other Models
 
+Most text-to-SQL solutions rely on large, generic "Black Box" LLMs. Here is how my hybrid architectural approach compares:
+
+| Feature | Generic LLM (GPT-4/LLaMA) | nl2sqlp (My Model) |
+| :--- | :--- | :--- |
+| **Ambiguity Handling** | Guesses the intent (leads to wrong data) | **Asks for Clarification** (Ensures accuracy) |
+| **Data Privacy** | Sends schema/data to 3rd party APIs | **100% Local** (Custom-hosted LM) |
+| **Schema Strictness** | May hallucinate non-existent columns | **Schema-Driven** (Strict mapping via `schema.json`) |
+| **Explainability** | Hard to debug "why" it wrote a query | **Transparent Pipeline** (LogicalForm is inspectable) |
+| **Compute Cost** | Expensive API tokens per request | **One-time local setup** with zero per-query cost |
+## ⚙️ Dynamic Schema Adaptation
+
+One of the most powerful features of this engine is its **agnostic design**. You can adapt this tool to any industry (Healthcare, Finance, Retail) simply by updating the schema definition.
+
+* **Zero Code Re-writes:** You do not need to change the LM or the Generator logic to support a new database.
+* **How to Update:** Simply modify the `schema.json` file (and `schema_utils.py` if adding custom types).
+* **Automatic Mapping:** The `planner.py` dynamically inspects the schema at runtime. If you add a new table for "Inventory" or "Sales," the system immediately begins recognizing those entities in natural language queries.
 ## 🏗️ System Architecture
 
 The pipeline follows a modular design, separating intent understanding (LM) from logic construction (Planner).
