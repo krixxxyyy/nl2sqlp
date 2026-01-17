@@ -1,0 +1,16 @@
+# Web Interface & UI
+streamlit>=1.31.0
+
+# AI/ML Engine (Custom Local LM Support)
+torch>=2.1.0
+transformers>=4.37.0
+safetensors>=0.4.1
+tokenizers>=0.15.2
+
+# Data Processing
+pandas>=2.1.0
+numpy>=1.26.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
